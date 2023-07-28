@@ -1,11 +1,25 @@
-## My Project
+<h1 align="center">Smithy Homebrew Tap</h1>
 
-TODO: Fill this README out!
+<p align="center">
+    <a href="https://github.com/smithy-lang/homebrew-tap/blob/main/LICENSE" title="license">
+      <img alt="LICENSE" src="https://img.shields.io/badge/License-Apache_2.0-blue.svg">
+    </a>
+</p>
 
-Be sure to:
+Homebrew tap that allows the installation of [Smithy](https://smithy.io/2.0/index.html) tools through the [Homebrew](https://brew.sh/) package manager.
 
-* Change the title in this README
-* Edit your repository description on GitHub
+
+## Installation
+```console
+brew tap smithy-lang/tap
+brew install <FORMULA>
+```
+
+## Formulae
+
+| Repository                                      | Formula                          | Description                                                              |
+|-------------------------------------------------|----------------------------------|--------------------------------------------------------------------------|
+| [smithy-cli](https://github.com/awslabs/smithy) | [formula](Formula/smithy-cli.rb) | A CLI for building, validating, querying, and iterating on Smithy models |
 
 ## Security
 
