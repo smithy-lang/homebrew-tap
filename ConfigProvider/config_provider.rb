@@ -4,7 +4,7 @@ class ConfigProvider
     ##
     # Creates a ConfigProvider which helps in reading values from the bottle's config file
     # in the bottle-configs directory.
-    # We are moving values to json file so that it is easy to modify them by bot
+    # Json files are used so that it is easy to modify them by bot
 
     CONFIG_DIR = File.join(File.dirname(__FILE__), "..", "bottle-configs")
 
