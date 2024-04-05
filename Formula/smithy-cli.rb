@@ -9,18 +9,18 @@ class SmithyCli < Formula
 
     if OS.mac?
       if Hardware::CPU.intel?
-        url "#{$config_provider.root_url}-darwin-x86_64.tar.gz"
+        url "#{$config_provider.root_url}-darwin-x86_64.zip"
         sha256 $config_provider.sierra_hash
       elsif Hardware::CPU.arm?
-        url "#{$config_provider.root_url}-darwin-aarch64.tar.gz"
+        url "#{$config_provider.root_url}-darwin-aarch64.zip"
         sha256 $config_provider.arm64_big_sur_hash
       end
     elsif OS.linux?
       if Hardware::CPU.intel?
-        url "#{$config_provider.root_url}-linux-x86_64.tar.gz"
+        url "#{$config_provider.root_url}-linux-x86_64.zip"
         sha256 $config_provider.linux_hash
       elsif Hardware::CPU.arm?
-        url "#{$config_provider.root_url}-linux-aarch64.tar.gz"
+        url "#{$config_provider.root_url}-linux-aarch64.zip"
         sha256 $config_provider.linux_arm_hash
       end
     end
