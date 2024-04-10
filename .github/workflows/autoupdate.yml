@@ -1,0 +1,116 @@
+name: autoupdate
+on:
+  workflow_dispatch: # on button click
+    inputs:
+      version:
+        description: 'The version of the smithy-cli to be released (e.g. 1.47.0)'
+        required: true
+        type: string
+      artifact_ext:
+        description: 'The file extension of the artifacts (e.g. .zip or .tar.gz)'
+        default: .zip
+        type: string
+
+
+env:
+  release_prefix: https://github.com/smithy-lang/smithy/releases/download
+  version: ${{ github.event.inputs.version }}
+  artifact_ext: ${{ github.event.inputs.artifact_ext }}
+
+jobs:
+  pre-flight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: environment
+        run: |
+          [ "${{ env.release_prefix }}" ] || (echo "release_prefix not set..." && exit 2)
+          echo "release_prefix: ${{ env.release_prefix }}"
+          [ "${{ env.version }}" ] || (echo "version not set...." && exit 2)
+          echo "version: ${{ env.version }}"
+          [ "${{ env.artifact_ext }}" ] || (echo "artifact_ext not set...." && exit 2)
+          echo "artifact_ext: ${{ env.artifact_ext }}"
+  download-and-save:
+    needs: pre-flight
+    runs-on: ubuntu-latest
+    steps:
+      - name: mac
+        run: |
+          hash_url="${{ env.release_prefix }}/${{ env.version }}/smithy-cli-darwin-x86_64${{ env.artifact_ext }}.sha256"
+          echo $hash_url
+          curl -fJLO $hash_url
+      - name: mac-arm
+        run: |
+          hash_url="${{ env.release_prefix }}/${{ env.version }}/smithy-cli-darwin-aarch64${{ env.artifact_ext }}.sha256"
+          echo $hash_url
+          curl -fJLO $hash_url
+      - name: linux
+        run: |
+          hash_url="${{ env.release_prefix }}/${{ env.version }}/smithy-cli-linux-x86_64${{ env.artifact_ext }}.sha256"
+          echo $hash_url
+          curl -fJLO $hash_url
+      - name: linux-arm
+        run: |
+          hash_url="${{ env.release_prefix }}/${{ env.version }}/smithy-cli-linux-aarch64${{ env.artifact_ext }}.sha256"
+          echo $hash_url
+          curl -fJLO $hash_url
+      - name: Save artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: brew-artifacts
+          path: '*.sha256'
+          retention-days: 7
+
+  update:
+    runs-on: ubuntu-latest
+    needs: download-and-save
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout bottle repo
+        uses: actions/checkout@v4
+        with:
+          ref: 'main'
+      - name: Get artifacts
+        id: download
+        uses: actions/download-artifact@v4
+        with:
+          name: brew-artifacts
+      - name: Update version
+        run: |
+          tmp=$(mktemp)
+          jq --arg version "${{ env.version }}" '.version = $version' bottle-configs/smithy-cli.json > "$tmp" && mv "$tmp" bottle-configs/smithy-cli.json
+      - name: Update root_url
+        run: |
+          tmp=$(mktemp)
+          jq --arg release_url "${{ env.release_prefix }}" --arg version "${{ env.version }}" '.bottle.root_url = "\($release_url)/\($version)/smithy-cli"' bottle-configs/smithy-cli.json > "$tmp" && mv "$tmp" bottle-configs/smithy-cli.json
+      - name: Update mac
+        run: |
+          sha=$(cut -d " " -f1 ${{steps.download.outputs.download-path}}/smithy-cli-darwin-x86_64${{ env.artifact_ext }}.sha256)
+          [ "$sha" ] || (echo "could not get sha..." && exit 2)
+          tmp=$(mktemp)
+          jq --arg sha "$sha" '.bottle.sha256.sierra = "'$sha'"' bottle-configs/smithy-cli.json > "$tmp" && mv "$tmp" bottle-configs/smithy-cli.json
+      - name: Update mac-arm
+        run: |
+          sha=$(cut -d " " -f1 ${{steps.download.outputs.download-path}}/smithy-cli-darwin-aarch64${{ env.artifact_ext }}.sha256)
+          [ "$sha" ] || (echo "could not get sha..." && exit 2)
+          tmp=$(mktemp)
+          jq --arg sha "$sha" '.bottle.sha256.arm64_big_sur = "'$sha'"' bottle-configs/smithy-cli.json > "$tmp" && mv "$tmp" bottle-configs/smithy-cli.json
+      - name: Update linux
+        run: |
+          sha=$(cut -d " " -f1 ${{steps.download.outputs.download-path}}/smithy-cli-linux-x86_64${{ env.artifact_ext }}.sha256)
+          [ "$sha" ] || (echo "could not get sha..." && exit 2)
+          tmp=$(mktemp)
+          jq --arg sha "$sha" '.bottle.sha256.linux = "'$sha'"' bottle-configs/smithy-cli.json > "$tmp" && mv "$tmp" bottle-configs/smithy-cli.json
+      - name: Update linux-arm
+        run: |
+          sha=$(cut -d " " -f1 ${{steps.download.outputs.download-path}}/smithy-cli-linux-aarch64${{ env.artifact_ext }}.sha256)
+          [ "$sha" ] || (echo "could not get sha..." && exit 2)
+          tmp=$(mktemp)
+          jq --arg sha "$sha" '.bottle.sha256.linux_arm = "'$sha'"' bottle-configs/smithy-cli.json > "$tmp" && mv "$tmp" bottle-configs/smithy-cli.json
+      - name: Push updates
+        run: |
+          git config user.name 'smithy-automation'
+          git config user.email 'github-smithy-automation@amazon.com'
+          git add bottle-configs/smithy-cli.json
+          git commit -m "chore: upgrade smithy-cli to ${{ env.version }}"
+          git push
