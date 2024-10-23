@@ -1,14 +1,14 @@
 {
-  "version": "1.52.0",
+  "version": "1.52.1",
   "name": "smithy-cli",
   "bin": "smithy",
   "bottle": {
-    "root_url": "https://github.com/smithy-lang/smithy/releases/download/1.52.0/smithy-cli",
+    "root_url": "https://github.com/smithy-lang/smithy/releases/download/1.52.1/smithy-cli",
     "sha256": {
-      "arm64_big_sur": "26ae37fcdabafeb0ab54591a770f89c29d4210075fd8858c635252859051d901",
-      "sierra": "7fa823ac9ce3bc8d287d0b8da781eb10290d379277381b8e70333025eee6aab0",
-      "linux": "ac3514f49d86642454e42147060ba05292cd6650b00f25db75edf67a2e0c3f9e",
-      "linux_arm": "4a4cf1092e52a9295114a9a762b589f3566e131b98847f9efd59ab8a3b40a6ff"
+      "arm64_big_sur": "de70831007ca5d62b1cb82b70b49187c8b7ec7445d545f7c83fa9533a4c68e4a",
+      "sierra": "8920eae56476895e7c945e354f56d6be80be8d3caf5f11540d5716eae47850c1",
+      "linux": "8f15fc3119c02cc4b88e5f43acddb894ab1da084d08deebb0b34683737abdc7c",
+      "linux_arm": "86043c5820fd629e348f70becd85ad16feaf671b16b3b4bac9f38d9096a16349"
     }
   }
 }
