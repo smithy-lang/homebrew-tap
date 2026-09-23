@@ -3,9 +3,8 @@ require_relative "../ConfigProvider/config_provider"
 class SmithyCli < Formula
   CONFIG = ConfigProvider.new("smithy-cli").freeze
 
-  desc "Smithy CLI - A CLI for building, validating, querying, and iterating on Smithy models"
+  desc "CLI for building, validating, querying, and iterating on Smithy models"
   homepage "https://smithy.io"
-  version CONFIG.version
 
   # We ship a self-contained runtime image, so keep the `@rpath` dylib ids the
   # release archives already carry instead of letting Homebrew rewrite them to
