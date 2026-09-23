@@ -1,26 +1,27 @@
 require_relative "../ConfigProvider/config_provider"
 
 class SmithyCli < Formula
-  $config_provider = ConfigProvider.new("smithy-cli")
+  CONFIG = ConfigProvider.new("smithy-cli").freeze
+
   desc "Smithy CLI - A CLI for building, validating, querying, and iterating on Smithy models"
   homepage "https://smithy.io"
-  version $config_provider.version
+  version CONFIG.version
 
   if OS.mac?
     if Hardware::CPU.intel?
-      url "#{$config_provider.root_url}-darwin-x86_64.zip"
-      sha256 $config_provider.sierra_hash
+      url "#{CONFIG.root_url}-darwin-x86_64.zip"
+      sha256 CONFIG.sierra_hash
     elsif Hardware::CPU.arm?
-      url "#{$config_provider.root_url}-darwin-aarch64.zip"
-      sha256 $config_provider.arm64_big_sur_hash
+      url "#{CONFIG.root_url}-darwin-aarch64.zip"
+      sha256 CONFIG.arm64_big_sur_hash
     end
   elsif OS.linux?
     if Hardware::CPU.intel?
-      url "#{$config_provider.root_url}-linux-x86_64.zip"
-      sha256 $config_provider.linux_hash
+      url "#{CONFIG.root_url}-linux-x86_64.zip"
+      sha256 CONFIG.linux_hash
     elsif Hardware::CPU.arm?
-      url "#{$config_provider.root_url}-linux-aarch64.zip"
-      sha256 $config_provider.linux_arm_hash
+      url "#{CONFIG.root_url}-linux-aarch64.zip"
+      sha256 CONFIG.linux_arm_hash
     end
   end
 
@@ -46,12 +47,12 @@ class SmithyCli < Formula
       end
     end
     # call warmup command to generate the jsa
-    system "#{bin}/#{$config_provider.bin}" + " warmup"
+    system "#{bin}/#{CONFIG.bin}" + " warmup"
   end
 
   test do
-    assert_path_exists lib/"#{$config_provider.bin}.jsa"
-    assert_match $config_provider.version, shell_output("#{bin}/#{$config_provider.bin} --version")
-    assert_match "Usage: #{$config_provider.bin}", shell_output("#{bin}/#{$config_provider.bin} --help")
+    assert_path_exists lib/"#{CONFIG.bin}.jsa"
+    assert_match CONFIG.version, shell_output("#{bin}/#{CONFIG.bin} --version")
+    assert_match "Usage: #{CONFIG.bin}", shell_output("#{bin}/#{CONFIG.bin} --help")
   end
 end
