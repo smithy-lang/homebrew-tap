@@ -7,6 +7,11 @@ class SmithyCli < Formula
   homepage "https://smithy.io"
   version CONFIG.version
 
+  # We ship a self-contained runtime image, so keep the `@rpath` dylib ids the
+  # release archives already carry instead of letting Homebrew rewrite them to
+  # absolute Cellar paths (which also invalidates their ad-hoc signatures).
+  preserve_rpath
+
   if OS.mac?
     if Hardware::CPU.intel?
       url "#{CONFIG.root_url}-darwin-x86_64.zip"
@@ -34,20 +39,9 @@ class SmithyCli < Formula
     bin.install_symlink "#{libexec}/bin/smithy" => "smithy"
   end
 
-  def post_install
-    # brew relocates dylibs and assigns different ids, which is problematic since
-    # we package a runtime image ourselves
-    if OS.mac?
-      Dir["#{libexec}/lib/**/*.dylib"].each do |dylib|
-        chmod 0664, dylib
-        MachO::Tools.change_dylib_id(dylib, "@rpath/#{File.basename(dylib)}")
-        # we also need to resign the dylibs, so that their ad-hoc signatures are not invalid
-        MachO.codesign!(dylib)
-        chmod 0444, dylib
-      end
-    end
-    # call warmup command to generate the jsa
-    system "#{bin}/#{CONFIG.bin}" + " warmup"
+  # call warmup command to generate the jsa
+  post_install_steps do
+    run "smithy", args: ["warmup"], base: :bin
   end
 
   test do
