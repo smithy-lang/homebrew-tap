@@ -39,13 +39,13 @@ class SmithyCli < Formula
     bin.install_symlink "#{libexec}/bin/smithy" => "smithy"
   end
 
-  # call warmup command to generate the jsa
+  # Generate the AOT cache at libexec/lib/smithy.aot.
   post_install_steps do
     run "smithy", args: ["warmup"], base: :bin
   end
 
   test do
-    assert_path_exists lib/"#{CONFIG.bin}.jsa"
+    assert_path_exists libexec/"lib/smithy.aot"
     assert_match CONFIG.version, shell_output("#{bin}/#{CONFIG.bin} --version")
     assert_match "Usage: #{CONFIG.bin}", shell_output("#{bin}/#{CONFIG.bin} --help")
   end
