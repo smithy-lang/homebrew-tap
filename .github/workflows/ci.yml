@@ -1,0 +1,91 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tap-syntax:
+    name: tap syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@848c272c7bfe984a197bd4d16383f4c106ec61e6 # 2026.09.21.1
+
+      - name: Cache Homebrew Bundler RubyGems
+        id: cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.set-up-homebrew.outputs.gems-path }}
+          key: ${{ runner.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
+          restore-keys: ${{ runner.os }}-rubygems-
+
+      - name: Install Homebrew Bundler RubyGems
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: brew install-bundler-gems
+
+      # Loads every formula in the tap, which also parses bottle-configs/*.json
+      # through ConfigProvider.
+      - name: Read all formulae
+        run: brew readall --aliases "$TAP"
+        env:
+          TAP: ${{ steps.set-up-homebrew.outputs.tap-name }}
+
+      # Covers Ruby (Formula/, ConfigProvider/) plus actionlint and shellcheck
+      # over .github/workflows.
+      - name: Style
+        run: brew style "$TAP"
+        env:
+          TAP: ${{ steps.set-up-homebrew.outputs.tap-name }}
+
+      - name: Audit
+        run: brew audit --strict --online --skip-style --tap="$TAP"
+        env:
+          TAP: ${{ steps.set-up-homebrew.outputs.tap-name }}
+      # Holds ConfigProvider to its `typed:` sigil. Sorbet ignores Formula/.
+      - name: Typecheck
+        run: brew typecheck "$TAP"
+        env:
+          TAP: ${{ steps.set-up-homebrew.outputs.tap-name }}
+
+  install:
+    name: install (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS arm64
+            os: macos-latest
+          - name: macOS x86_64
+            os: macos-15-intel
+          - name: Linux x86_64
+            os: ubuntu-latest
+          - name: Linux arm64
+            os: ubuntu-24.04-arm
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@848c272c7bfe984a197bd4d16383f4c106ec61e6 # 2026.09.21.1
+
+      # Verifies the sha256 in bottle-configs/smithy-cli.json against the
+      # release archive this platform actually downloads.
+      - name: Install
+        run: brew install --verbose --formula "$TAP/smithy-cli"
+        env:
+          TAP: ${{ steps.set-up-homebrew.outputs.tap-name }}
+
+      - name: Test
+        run: brew test --verbose "$TAP/smithy-cli"
+        env:
+          TAP: ${{ steps.set-up-homebrew.outputs.tap-name }}
