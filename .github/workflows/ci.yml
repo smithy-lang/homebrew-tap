@@ -52,6 +52,11 @@ jobs:
         run: brew audit --strict --online --skip-style --tap="$TAP"
         env:
           TAP: ${{ steps.set-up-homebrew.outputs.tap-name }}
+      # Holds ConfigProvider to its `typed:` sigil. Sorbet ignores Formula/.
+      - name: Typecheck
+        run: brew typecheck "$TAP"
+        env:
+          TAP: ${{ steps.set-up-homebrew.outputs.tap-name }}
 
   install:
     name: install (${{ matrix.name }})
