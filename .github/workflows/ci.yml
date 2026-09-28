@@ -9,6 +9,11 @@ on:
 permissions:
   contents: read
 
+env:
+  # Make Homebrew deprecations fatal so they fail CI instead of warning
+  # silently until they become hard failures for users.
+  HOMEBREW_DEVELOPER: 1
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
