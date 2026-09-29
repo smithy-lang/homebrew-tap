@@ -94,3 +94,17 @@ jobs:
         run: brew test --verbose "$TAP/smithy-cli"
         env:
           TAP: ${{ steps.set-up-homebrew.outputs.tap-name }}
+
+  # The single check the `main: ci` ruleset requires, so adding or renaming a
+  # platform never needs a ruleset edit. `if: always()` makes it report a
+  # failure when an upstream job fails, instead of being skipped and leaving
+  # the required check pending forever.
+  ci-gate:
+    name: ci-gate
+    if: always()
+    needs: [tap-syntax, install]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every CI job to succeed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+        run: exit 1
