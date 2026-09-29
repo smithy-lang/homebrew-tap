@@ -6,6 +6,11 @@ updates:
       interval: "weekly"
       day: "wednesday"
       time: "10:00"
+    # Dependabot infers a conventional-commit prefix from recent history
+    # (the autoupdate workflow's "chore:" commits). An explicit empty
+    # prefix disables that inference.
+    commit-message:
+      prefix: ""
     groups:
       github-actions:
         patterns:
