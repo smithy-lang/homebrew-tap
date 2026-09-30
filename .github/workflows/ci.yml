@@ -95,6 +95,15 @@ jobs:
         env:
           TAP: ${{ steps.set-up-homebrew.outputs.tap-name }}
 
+      # Fails if a bundled binary or dylib has an absolute or resolvable
+      # @rpath reference to a missing file, e.g. a build-machine path leaked
+      # into a release archive. Not `--strict`: the JDK's libjava and friends
+      # rely on the launcher having loaded libjvm, so they have no rpath.
+      - name: Linkage
+        run: brew linkage --test "$TAP/smithy-cli"
+        env:
+          TAP: ${{ steps.set-up-homebrew.outputs.tap-name }}
+
   # The single check the `main: ci` ruleset requires, so adding or renaming a
   # platform never needs a ruleset edit. `if: always()` makes it report a
   # failure when an upstream job fails, instead of being skipped and leaving
