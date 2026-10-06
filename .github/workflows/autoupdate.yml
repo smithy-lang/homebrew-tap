@@ -76,5 +76,5 @@ jobs:
           git config user.name 'smithy-automation'
           git config user.email 'github-smithy-automation@amazon.com'
           git add bottle-configs/smithy-cli.json
-          git commit -m "chore: upgrade smithy-cli to $version"
+          git commit -m "Upgrade smithy-cli to $version"
           git push
